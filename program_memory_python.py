@@ -26,15 +26,8 @@ def reset():
     Arduino.setDTR(False)
     Arduino.reset_input_buffer();
     Arduino.setDTR(True)
-
-    # After reset we should chek for the reset message
-    # resp = Arduino.readline().strip()
-    # if b"OK: Panc'Art" == resp :
-    #     print("** RESET ok: ", resp.strip())
-    # else:
-    #     print("** RESET not ok: ", resp.strip())
         
-user_input = "rien"       
+user_input = ""       
 Arduino.reset_input_buffer()
 reset()
 while(user_input != "stop"):
