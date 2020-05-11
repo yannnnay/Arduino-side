@@ -3,7 +3,7 @@
 from serial import *
 import time
 
-Arduino = Serial(port="/dev/ttyACM1", baudrate=115200)
+Arduino = Serial(port="/dev/ttyACM0", baudrate=115200)
 
 
     

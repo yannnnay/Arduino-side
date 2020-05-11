@@ -1,12 +1,21 @@
-#include <SoftwareSerial.h>
-#define SIZE_ADDRESS 4
-#define SIZE_DATA 3
+/* Program conceived for an arduino uno and an AT28C64B-15PU directly connected, not passing through 8 bits registers */
+/* Author: Yann Ferry */
+/* 10/05/2020 */
 
-int address_pins[] = {16,17,18,19};
-int io_pins[] = {8,9,10};
-int outputEnable = 4;
-int writeEnable = 3;
-int chipEnable = 5;
+#include <SoftwareSerial.h>
+#define SIZE_ADDRESS 13
+#define SIZE_DATA 8
+
+int address_pin = 4;
+int io_pins[] = {2,3,4,5,6,7,8,9};
+
+int outputEnable = 10;
+int writeEnable = 11;
+int chipEnable = 9;
+
+int data_register = A4;
+int latch_register =  A3;
+int clock_register = A2;
 
 static const int CMD_LENGTH = 32;
 char cmd[CMD_LENGTH];
@@ -19,9 +28,7 @@ int read_mem(int address);
 int power(int a, int b);
 
 void setup() {
-  for(int j = 0; j< SIZE_ADDRESS; j++){
-    pinMode(address_pins[j],OUTPUT);
-  }
+  pinMode(address_pin, OUTPUT);
   pinMode(outputEnable, OUTPUT);
   pinMode(writeEnable, OUTPUT);
   digitalWrite(outputEnable, HIGH);
@@ -86,7 +93,7 @@ void loop() {
                    Serial.print(" value : ");
                    Serial.println(value);
                    digitalWrite(writeEnable, HIGH);
-                   digitalWrite(chipEnable, HIGH); 
+                   digitalWrite(chipEnable, HIGH);
                    break;
               default:
                  Serial.println("Error: unrecognized command");
@@ -109,31 +116,25 @@ int read_mem(int address){
 // Need to be change if shift register is used
 //TODO CAN BE IMPROVED, BETA VERSION 
 void selectAddress(int address){
-  int k = 0;
-  for (int c = 0; c < SIZE_ADDRESS ; c++)
-  { 
-    k = bitRead(address, c);
-    if (k==1){
-      digitalWrite(address_pins[c], HIGH);
-    } else {
-      digitalWrite(address_pins[c], LOW);
-    }
-  }
+    digitalWrite(latch_register, LOW);
+    digitalWrite(clock_register, LOW);
+    shiftOut(data_register, clock_register, MSBFIRST, address);
+    digitalWrite(latch_register, HIGH);
 }
 
 // Read the output of the memory and convert it into binary
 int readOutput(){
   int value = 0;
   int k =0;
-  
+
   for(int j = 0; j< SIZE_DATA; j++){
     pinMode(io_pins[j],INPUT);
   }
-  
+
   digitalWrite(outputEnable, LOW);
   digitalWrite(writeEnable, HIGH);
   digitalWrite(chipEnable, LOW);
-  
+
   for(int c = 0; c< SIZE_DATA; c++)
   {
 
@@ -149,7 +150,6 @@ int readOutput(){
 int write_mem(int address, int value){
   selectAddress(address);
   writeOutput(value);
-  
 }
 
 void writeOutput(int value){

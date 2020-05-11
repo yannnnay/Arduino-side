@@ -1,3 +1,7 @@
+/* Program conceived for an arduino uno and an AT28C64B-15PU directly connected, not passing through 8 bits registers */
+/* Author: Yann Ferry */
+/* 10/05/2020 */
+
 #include <SoftwareSerial.h>
 #define SIZE_ADDRESS 4
 #define SIZE_DATA 3
