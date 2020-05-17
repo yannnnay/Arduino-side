@@ -7,11 +7,11 @@
 #define SIZE_DATA 8
 
 int address_pin = 4;
-int io_pins[] = {2,3,4,5,6,7,8,9};
+int io_pins[] = {2,3,4,5,6,7,8,12};
 
 int outputEnable = 10;
 int writeEnable = 11;
-int chipEnable = 9;
+
 
 int data_register = A4;
 int latch_register =  A3;
@@ -31,9 +31,18 @@ void setup() {
   pinMode(address_pin, OUTPUT);
   pinMode(outputEnable, OUTPUT);
   pinMode(writeEnable, OUTPUT);
+
+  pinMode(data_register, OUTPUT);
+  pinMode(latch_register, OUTPUT);
+  pinMode(clock_register, OUTPUT);
+
   digitalWrite(outputEnable, HIGH);
   digitalWrite(writeEnable, HIGH);
-  digitalWrite(chipEnable, HIGH);
+
+  digitalWrite(data_register, HIGH);
+  digitalWrite(latch_register, HIGH);
+  digitalWrite(clock_register, HIGH);
+
   Serial.begin(115200);
 }
 
@@ -76,8 +85,6 @@ void loop() {
                    Serial.print(address);
                    Serial.print(" => value : ");
                    Serial.println(value);
-                   digitalWrite(outputEnable, HIGH);
-                   digitalWrite(chipEnable, HIGH);
                    break;
               case 'w':
                    address = 0;
@@ -92,8 +99,6 @@ void loop() {
                    Serial.print(address);
                    Serial.print(" value : ");
                    Serial.println(value);
-                   digitalWrite(writeEnable, HIGH);
-                   digitalWrite(chipEnable, HIGH);
                    break;
               default:
                  Serial.println("Error: unrecognized command");
@@ -105,7 +110,7 @@ void loop() {
 
 // Allow to read the memory at a desired address
 int read_mem(int address){
-  int value = 99;
+  int value = 2;
   selectAddress(address);
   value = readOutput();
   return value;
@@ -113,11 +118,10 @@ int read_mem(int address){
 
 
 // Write the desired address in binary 
-// Need to be change if shift register is used
-//TODO CAN BE IMPROVED, BETA VERSION 
 void selectAddress(int address){
     digitalWrite(latch_register, LOW);
     digitalWrite(clock_register, LOW);
+    shiftOut(data_register, clock_register, MSBFIRST, (address >> 8));
     shiftOut(data_register, clock_register, MSBFIRST, address);
     digitalWrite(latch_register, HIGH);
 }
@@ -133,7 +137,6 @@ int readOutput(){
 
   digitalWrite(outputEnable, LOW);
   digitalWrite(writeEnable, HIGH);
-  digitalWrite(chipEnable, LOW);
 
   for(int c = 0; c< SIZE_DATA; c++)
   {
@@ -141,9 +144,10 @@ int readOutput(){
     k = digitalRead(io_pins[c]);
     if(k == HIGH){
       value = value + power(2,c);
-    }
+      }
   }
-  delay(1000);
+  delay(10);
+  digitalWrite(outputEnable, HIGH);
   return value;
 }
 
@@ -168,9 +172,9 @@ void writeOutput(int value){
       digitalWrite(io_pins[c], LOW);
     }
   }
-  delay(1000);
+  digitalWrite(outputEnable, HIGH);
   digitalWrite(writeEnable, LOW);
-  digitalWrite(chipEnable, LOW);
+  delay(10);
   digitalWrite(writeEnable,HIGH);
   delay(5);
   

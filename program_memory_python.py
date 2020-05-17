@@ -3,10 +3,9 @@
 from serial import *
 import time
 
-Arduino = Serial(port="/dev/ttyACM0", baudrate=115200)
+Arduino = Serial(port="/dev/ttyUSB1", baudrate=115200)
 
 
-    
 def cmd( arg):
     if len(arg) > 32:
         print("COMMAND TOO LONG")
@@ -17,23 +16,20 @@ def cmd( arg):
         Arduino.flush()
         resp = Arduino.readline()
         print(resp)
-        
-
 
 
 def reset():
     # unsetting DTR will reset the board, even on Linux
     Arduino.setDTR(False)
-    Arduino.reset_input_buffer();
+    Arduino.reset_input_buffer()
     Arduino.setDTR(True)
-        
-user_input = ""       
+
+user_input = ""
 Arduino.reset_input_buffer()
 reset()
 while(user_input != "stop"):
     user_input = input("Enter a command: \n")
     cmd(user_input)
 
-    
 print("bye.....")
 Arduino.close()
